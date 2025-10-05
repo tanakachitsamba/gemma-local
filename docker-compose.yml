@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENABLE_CUBLAS: ${ENABLE_CUBLAS-0}
+    image: gemma-local:dev
+    ports:
+      - "8000:8000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8000
+      MODEL_PATH: /app/models/gemma-2-2b-it.Q4_K_M.gguf
+      # Optional server settings; uncomment to tweak
+      # N_CTX: 4096
+      # N_THREADS: 8
+      # N_GPU_LAYERS: 0
+    volumes:
+      - ./models:/app/models:ro
+      - ./config.yaml:/app/config.yaml:ro
+    # For GPU, enable below and set ENABLE_CUBLAS=1 at build
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [gpu]
+    # runtime: nvidia
+    # Or with Docker CLI: `docker compose --profile gpu up` on newer setups
+

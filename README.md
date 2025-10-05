@@ -92,3 +92,20 @@ Run (mount models directory and set MODEL_PATH accordingly):
 GitHub Actions publishes images to GHCR on pushes to `main` and tags. Pull via:
 
     docker pull ghcr.io/<your-org-or-user>/gemma-local:latest
+
+Compose (recommended for local):
+
+    docker compose up --build
+
+- Mounts `./models` at `/app/models` and reads `./config.yaml` if present.
+- To build with CUDA/cuBLAS support for `llama-cpp-python` (advanced), pass an ARG:
+
+    docker compose build --build-arg ENABLE_CUBLAS=1
+
+Then run with GPU access (varies by setup):
+- Docker CLI: `docker run --gpus=all ...`
+- Compose profiles or runtime flags depending on your NVIDIA Docker version.
+
+Notes
+- GPU builds require CUDA libraries on the host and inside the container. Prefer CPU builds unless you know you need GPU.
+- Keep one worker process; the server uses a generation lock to stay stable on small machines.
