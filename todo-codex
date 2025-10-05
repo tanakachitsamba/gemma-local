@@ -1,0 +1,47 @@
+High-priority TODOs for gemma-local (human-crafted)
+
+1) Code quality and structure
+- [ ] Add pyproject.toml with ruff/black/mypy configs
+- [ ] Introduce simple settings layer (env + optional YAML override)
+- [ ] Split server into smaller modules if it grows (api/, core/, adapters/)
+- [ ] Add request/response pydantic schemas for clearer contracts
+
+2) Documentation & DX
+- [ ] Expand README: quickstart, troubleshooting, performance tips, GPU notes
+- [ ] Add docs/ with architecture overview and flows
+- [ ] Document dataset schema for fine-tune/eval (JSONL), examples included
+- [ ] Write a style guide for comments and PRs (human tone, concise)
+
+3) Testing
+- [ ] Property-style tests for sse_event formatting and chunk ordering
+- [ ] Contract tests to pin response shapes (stream/non-stream)
+- [ ] Load/smoke test script (locust or vegeta) to baseline throughput
+- [ ] Negative tests: invalid payloads, large max_tokens, bad stop sequences
+
+4) MLOps & DataOps (minimal but meaningful)
+- [ ] Add training/train_lora.py (PEFT) with config-driven training
+- [ ] Add configs/train_lora.example.yaml and explain knobs
+- [ ] Add scripts/evaluate.py to score base vs. fine-tuned on a dataset
+- [ ] Add data/README.md and sample JSONL (alpaca-like)
+- [ ] Add simple experiment tracking (CSV/JSONL logs) and metric summaries
+- [ ] Optional: wire in Weights & Biases if available (feature-flag)
+
+5) CI/CD & quality gates
+- [ ] Expand CI to run ruff/black/mypy linters
+- [ ] Cache pip deps for faster CI runs
+- [ ] Add test matrix (3.10, 3.11, 3.12)
+- [ ] Optional: build and push a Docker image for the server
+
+6) Safety and robustness
+- [ ] Rate-limit or queue requests; expose /metrics for basic observability
+- [ ] Add timeout/cancellation handling for long generations
+- [ ] Sanitise streaming errors with stable SSE termination
+
+7) Future polish
+- [ ] Orchestrator for multi-model hosting and model hot-swap
+- [ ] Simple dataset curation utilities (dedup, length filters, splitters)
+- [ ] Utility to export HF model + LoRA to GGUF pipeline
+
+Notes:
+- Keep comments crisp and human. Prefer small, readable functions.
+- Avoid breaking the minimal API; layer features behind flags/configs.

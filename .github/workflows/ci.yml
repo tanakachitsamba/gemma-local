@@ -7,19 +7,37 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
 
       - name: Install Python test deps (no llama-cpp)
-        working-directory: model_server
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements-dev.txt fastapi==0.111.0 uvicorn[standard]==0.30.1 pydantic==2.8.2
+          python -m pip install -r model_server/requirements-dev.txt fastapi==0.111.0 uvicorn[standard]==0.30.1 pydantic==2.8.2
 
-      - name: Python tests
-        run: pytest -q model_server/tests
+      - name: Lint (ruff)
+        run: |
+          python -m pip install ruff==0.6.9
+          ruff check .
+
+      - name: Format check (black)
+        run: |
+          python -m pip install black==24.8.0
+          black --check .
+
+      - name: Type check (mypy)
+        run: |
+          python -m pip install mypy==1.11.2
+          mypy model_server
+
+      - name: Python tests with coverage
+        run: pytest

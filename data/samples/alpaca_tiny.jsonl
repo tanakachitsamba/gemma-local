@@ -1,0 +1,3 @@
+{"instruction": "Say hello", "input": "", "output": "Hello!"}
+{"instruction": "Translate to French", "input": "Good morning", "output": "Bonjour"}
+{"instruction": "Add numbers", "input": "3 + 5", "output": "8"}

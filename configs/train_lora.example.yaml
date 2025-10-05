@@ -1,0 +1,13 @@
+base_model: meta-llama/Llama-2-7b-hf
+dataset_path: ./data/samples/alpaca_tiny.jsonl
+output_dir: ./outputs/llama2_7b_lora_demo
+lr: 0.0002
+batch_size: 8
+micro_batch_size: 2
+num_epochs: 1
+max_length: 512
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.05
+use_4bit: true
+# gradient_accumulation_steps: 4  # optional override

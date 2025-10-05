@@ -1,0 +1,10 @@
+MODEL_PATH: ./models/gemma-2-2b-it.Q4_K_M.gguf
+N_CTX: 4096
+N_THREADS: 8
+N_GPU_LAYERS: 0
+HOST: 127.0.0.1
+PORT: 8000
+TEMPERATURE: 0.7
+MAX_TOKENS: 512
+MAX_TOKENS_LIMIT: 8192
+SYSTEM_PROMPT: You are a helpful assistant running locally.
