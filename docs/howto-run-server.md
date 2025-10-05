@@ -35,3 +35,6 @@ How to Run the Server
 Troubleshooting
 - If import errors mention `llama-cpp-python`, ensure the wheel matches your OS/GPU.
 - For long runs, reduce `max_tokens` or use fewer `N_GPU_LAYERS`.
+
+Run via Docker
+- See `docs/howto-docker.md` for building/running images and Compose usage.

@@ -21,3 +21,4 @@ Steps
 Notes
 - If you need GPU acceleration, install a CUDA-capable `llama-cpp-python` wheel.
 - Keep the environment minimal; use a dedicated venv per project.
+- To use `config.yaml` fallback, install `pyyaml` (or use Docker/Compose where the file is mounted).

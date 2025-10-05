@@ -75,6 +75,7 @@ Suggested flow:
 - `docs/howto-tests.md` — run tests and view coverage
 - `docs/howto-finetune.md` — fine-tune with LoRA (PEFT)
 - `docs/howto-evaluate.md` — evaluate base vs. fine‑tuned outputs
+- `docs/howto-docker.md` — container builds, Compose, and GHCR images
 
 ## Docker
 
