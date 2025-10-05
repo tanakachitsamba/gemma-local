@@ -75,3 +75,20 @@ Suggested flow:
 - `docs/howto-tests.md` — run tests and view coverage
 - `docs/howto-finetune.md` — fine-tune with LoRA (PEFT)
 - `docs/howto-evaluate.md` — evaluate base vs. fine‑tuned outputs
+
+## Docker
+
+Build locally:
+
+    docker build -t gemma-local:latest .
+
+Run (mount models directory and set MODEL_PATH accordingly):
+
+    docker run --rm -p 8000:8000 \
+      -v %CD%/models:/app/models \
+      -e MODEL_PATH="/app/models/gemma-2-2b-it.Q4_K_M.gguf" \
+      gemma-local:latest
+
+GitHub Actions publishes images to GHCR on pushes to `main` and tags. Pull via:
+
+    docker pull ghcr.io/<your-org-or-user>/gemma-local:latest
