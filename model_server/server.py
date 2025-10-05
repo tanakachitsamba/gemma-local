@@ -235,6 +235,10 @@ async def chat_completions(req: ChatRequest, request: Request):
                 # Explicitly signal the end of stream for simple clients
                 yield b"data: [DONE]\n\n"
                 metrics.record_request(started, streaming=True)
+                try:
+                    _req_semaphore.release()
+                except Exception:
+                    pass
 
         headers = {
             "Cache-Control": "no-cache",
