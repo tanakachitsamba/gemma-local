@@ -27,8 +27,11 @@ from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import threading
+import asyncio
+import concurrent.futures
 
 from . import config
+from . import metrics
 
 try:
     # Import may fail in CI or before the wheel is installed. That's OK:
@@ -48,6 +51,7 @@ app = FastAPI(title="Gemma Local Model Server", version="0.1.0")
 _llama_lock = threading.Lock()
 _generation_lock = threading.Lock()
 _llama_instance: Optional["Llama"] = None
+_req_semaphore = threading.BoundedSemaphore(value=max(1, config.MAX_CONCURRENT_REQUESTS))
 
 
 def get_llama() -> "Llama":
@@ -146,9 +150,21 @@ async def chat_completions(req: ChatRequest, request: Request):
     lightweight clients and demos without extra glue code.
     """
 
+    started = time.time()
+    # Rate limit: acquire within timeout or return 429
+    loop = asyncio.get_running_loop()
+    timeout_s = max(0.001, config.ACQUIRE_TIMEOUT_MS / 1000.0)
+    def _acq() -> bool:
+        return _req_semaphore.acquire(timeout=timeout_s)
+    acquired = await loop.run_in_executor(None, _acq)
+    if not acquired:
+        metrics.record_error()
+        return PlainTextResponse("Too Many Requests", status_code=429)
+
     try:
         llama = get_llama()
     except Exception as e:
+        metrics.record_error()
         return PlainTextResponse(str(e), status_code=500)
 
     # Prepend optional system prompt if not already present
@@ -171,7 +187,10 @@ async def chat_completions(req: ChatRequest, request: Request):
                             stop=req.stop,
                             seed=req.seed,
                         )
+                        deadline = time.time() + max(1, config.STREAMING_TIMEOUT_S)
                         for chunk in iterator:
+                            if time.time() > deadline:
+                                break
                             chunk["id"] = chunk.get("id", f"chatcmpl-{created}")
                             chunk["object"] = "chat.completion.chunk"
                             chunk["created"] = created
@@ -210,10 +229,12 @@ async def chat_completions(req: ChatRequest, request: Request):
                             yield sse_event(payload)
             except Exception as e:
                 err = {"error": {"message": str(e)}}
+                metrics.record_error()
                 yield sse_event(err)
             finally:
                 # Explicitly signal the end of stream for simple clients
                 yield b"data: [DONE]\n\n"
+                metrics.record_request(started, streaming=True)
 
         headers = {
             "Cache-Control": "no-cache",
@@ -272,7 +293,15 @@ async def chat_completions(req: ChatRequest, request: Request):
                 return JSONResponse(payload)
     except Exception as e:
         # Return a clear 500 so clients can surface errors cleanly
+        metrics.record_error()
         return PlainTextResponse(str(e), status_code=500)
+    finally:
+        try:
+            _req_semaphore.release()
+        except Exception:
+            pass
+        if not req.stream:
+            metrics.record_request(started, streaming=False)
 
 
 @app.get("/")
@@ -284,3 +313,8 @@ def root():
         "endpoints": ["/healthz", "/v1/chat/completions"],
         "model_path": config.MODEL_PATH,
     }
+
+
+@app.get("/metrics")
+def prometheus_metrics():
+    return PlainTextResponse(metrics.prometheus_text(), media_type="text/plain; version=0.0.4")

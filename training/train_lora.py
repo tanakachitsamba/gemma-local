@@ -13,6 +13,7 @@ from transformers import (
     TrainingArguments,
     DataCollatorForLanguageModeling,
 )
+from transformers.trainer_callback import TrainerCallback
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 
 
@@ -120,12 +121,30 @@ def main() -> None:
         report_to=[],
     )
 
+    class CsvLogger(TrainerCallback):
+        def __init__(self, path: Path):
+            self.path = path
+            self._fh = path.open("w", encoding="utf-8")
+            self._fh.write("step,loss\n")
+
+        def on_log(self, args, state, control, logs=None, **kwargs):
+            if logs and "loss" in logs:
+                self._fh.write(f"{int(state.global_step)},{logs['loss']}\n")
+                self._fh.flush()
+
+        def on_train_end(self, args, state, control, **kwargs):
+            try:
+                self._fh.close()
+            except Exception:
+                pass
+
     trainer = Trainer(
         model=model,
         args=args_tr,
         train_dataset=tokenized,
         data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
     )
+    trainer.add_callback(CsvLogger(out_dir / "train_logs.csv"))
     trainer.train()
 
     # Save adapter-only by default
@@ -138,4 +157,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

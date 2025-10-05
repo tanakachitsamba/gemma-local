@@ -63,3 +63,8 @@ SYSTEM_PROMPT = getenv_str(
     "SYSTEM_PROMPT",
     "You are a helpful assistant running locally.",
 )
+
+# Ops knobs
+MAX_CONCURRENT_REQUESTS = getenv_int("MAX_CONCURRENT_REQUESTS", 32)
+ACQUIRE_TIMEOUT_MS = getenv_int("ACQUIRE_TIMEOUT_MS", 10000)
+STREAMING_TIMEOUT_S = getenv_int("STREAMING_TIMEOUT_S", 120)
