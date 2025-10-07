@@ -35,3 +35,5 @@ Export and convert
 Notes
 - Start tiny: a few hundred samples, short sequences, small ranks.
 - Keep logs (CSV/JSON) and samples for quick regression checks.
+- Precision is auto-detected: the script prefers bfloat16, falls back to float16
+  when CUDA lacks BF16 support, and otherwise runs in full precision with a warning.
