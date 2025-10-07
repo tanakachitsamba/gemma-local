@@ -127,10 +127,7 @@ def main() -> None:
     else:
         cuda_available = torch.cuda.is_available()
         if cuda_available:
-            bf16_supported = False
-            is_bf16_supported = getattr(torch.cuda, "is_bf16_supported", None)
-            if callable(is_bf16_supported):
-                bf16_supported = is_bf16_supported()
+            bf16_supported = getattr(torch.cuda, "is_bf16_supported", lambda: False)()
             if bf16_supported:
                 use_bf16 = True
             else:
