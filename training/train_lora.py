@@ -121,8 +121,8 @@ def main() -> None:
     precision_warning = None
 
     if torch is None:
-        precision_warning = (
-            "PyTorch is not available; training will proceed in full precision."
+        raise ImportError(
+            "PyTorch is not available. Training cannot proceed. Please install PyTorch to continue."
         )
     else:
         cuda_available = torch.cuda.is_available()
