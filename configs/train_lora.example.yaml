@@ -11,3 +11,4 @@ lora_alpha: 16
 lora_dropout: 0.05
 use_4bit: true
 # gradient_accumulation_steps: 4  # optional override
+# Precision is auto-detected: prefers bf16, then fp16, then full precision.

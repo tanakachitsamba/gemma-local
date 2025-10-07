@@ -1,5 +1,6 @@
 import argparse
 import json
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -15,6 +16,11 @@ from transformers import (
 )
 from transformers.trainer_callback import TrainerCallback
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+try:
+    import torch
+except ImportError:  # pragma: no cover - torch is optional at runtime
+    torch = None
 
 
 @dataclass
@@ -109,6 +115,37 @@ def main() -> None:
     grad_accum = cfg.gradient_accumulation_steps or max(
         1, cfg.batch_size // cfg.micro_batch_size
     )
+
+    use_bf16 = False
+    use_fp16 = False
+    precision_warning = None
+
+    if torch is None:
+        precision_warning = (
+            "PyTorch is not available; training will proceed in full precision."
+        )
+    else:
+        cuda_available = torch.cuda.is_available()
+        if cuda_available:
+            bf16_supported = False
+            is_bf16_supported = getattr(torch.cuda, "is_bf16_supported", None)
+            if callable(is_bf16_supported):
+                bf16_supported = is_bf16_supported()
+            if bf16_supported:
+                use_bf16 = True
+            else:
+                use_fp16 = True
+                precision_warning = (
+                    "CUDA device does not support bfloat16; falling back to float16 precision."
+                )
+        else:
+            precision_warning = (
+                "CUDA is not available; training will proceed in full precision."
+            )
+
+    if precision_warning:
+        warnings.warn(precision_warning)
+
     args_tr = TrainingArguments(
         output_dir=str(out_dir),
         learning_rate=cfg.lr,
@@ -117,7 +154,8 @@ def main() -> None:
         num_train_epochs=cfg.num_epochs,
         logging_steps=10,
         save_strategy="epoch",
-        bf16=True,
+        bf16=use_bf16,
+        fp16=use_fp16,
         report_to=[],
     )
 
