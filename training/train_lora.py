@@ -19,7 +19,7 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 
 try:
     import torch
-except ImportError:  # pragma: no cover - torch is optional at runtime
+except ImportError:  # torch is required for training; script will fail if not installed
     torch = None
 
 
