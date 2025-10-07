@@ -4,8 +4,15 @@ from types import SimpleNamespace
 
 
 def _reload_config(monkeypatch):
-    """Reload config after clearing common environment overrides."""
+    """
+    Reloads the model_server.config module after clearing common environment overrides.
 
+    This is necessary for test isolation: environment variables can affect config loading,
+    so we clear them and reload the module to ensure each test gets a fresh, consistent config.
+
+    Returns:
+        The reloaded model_server.config module.
+    """
     for key in ("CONFIG_PATH", "N_THREADS", "N_GPU_LAYERS", "CUDA_VISIBLE_DEVICES"):
         monkeypatch.delenv(key, raising=False)
     import model_server.config as cfg
