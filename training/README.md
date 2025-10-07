@@ -4,7 +4,9 @@ This directory provides a minimal, practical entry to fine-tune a causal LM
 with PEFT/LoRA using Hugging Face Transformers on an instruction-style JSONL.
 
 Why this approach?
-- You can train on full-precision or 4-bit (QLoRA) depending on GPU.
+- You can train on full-precision or 4-bit (QLoRA) depending on GPU. The
+  script automatically disables 4-bit when no CUDA device is available to
+  avoid confusing runtime failures.
 - It’s easy to export a merged adapter back to a HF model and then convert to
   GGUF for llama.cpp inference.
 

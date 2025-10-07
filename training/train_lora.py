@@ -1,9 +1,11 @@
 import argparse
 import json
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+import torch
 import yaml
 from datasets import load_dataset
 from transformers import (
@@ -66,6 +68,13 @@ def main() -> None:
     args = ap.parse_args()
 
     cfg = load_config(args.config)
+
+    if cfg.use_4bit and not torch.cuda.is_available():
+        warnings.warn(
+            "Requested 4-bit training but no CUDA GPU was detected; disabling 4-bit mode.",
+            RuntimeWarning,
+        )
+        cfg.use_4bit = False
     out_dir = Path(cfg.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
