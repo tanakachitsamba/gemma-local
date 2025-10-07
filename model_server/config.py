@@ -44,7 +44,7 @@ def _detect_gpu_with_torch() -> Tuple[int, str]:
             count = torch.cuda.device_count() or 0
             if count:
                 return count, "torch.cuda"
-    except Exception:  # pragma: no cover - torch backend errors
+    except RuntimeError:  # pragma: no cover - torch backend errors
         return 0, "torch-error"
     return 0, "torch"
 
