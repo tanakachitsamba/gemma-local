@@ -36,7 +36,7 @@ def recommend_thread_count(cpu_count: int) -> int:
 def _detect_gpu_with_torch() -> Tuple[int, str]:
     try:  # Optional dependency; avoid hard import failures.
         import torch  # type: ignore
-    except Exception:
+    except (ImportError, ModuleNotFoundError):
         return 0, "unavailable"
 
     try:
