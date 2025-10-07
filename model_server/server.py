@@ -19,6 +19,7 @@ Design notes (for humans):
 from __future__ import annotations
 
 import json
+import logging
 import time
 from typing import Any, Dict, List, Optional
 
@@ -43,6 +44,21 @@ except Exception as e:  # pragma: no cover
 else:
     _import_err = None
 
+
+logger = logging.getLogger(__name__)
+
+logger.info(
+    "Hardware detection: CPUs=%s (recommended threads=%s, configured threads=%s); "
+    "GPU available=%s (count=%s, source=%s, recommended layers=%s, configured layers=%s)",
+    config.HARDWARE["cpu_count"],
+    config.HARDWARE["recommended_threads"],
+    config.HARDWARE["configured_threads"],
+    config.HARDWARE["gpu_available"],
+    config.HARDWARE["gpu_count"],
+    config.HARDWARE["gpu_detection_source"],
+    config.HARDWARE["recommended_gpu_layers"],
+    config.HARDWARE["configured_gpu_layers"],
+)
 
 app = FastAPI(title="Gemma Local Model Server", version="0.1.0")
 
@@ -69,6 +85,13 @@ def get_llama() -> "Llama":
                     "Install from model_server/requirements.txt and ensure the wheel matches your platform."
                 )
             )
+        if config.N_GPU_LAYERS and not config.GPU_AVAILABLE:
+            msg = (
+                "GPU layers requested (N_GPU_LAYERS={layers}) but no GPU was detected. "
+                "Detection source: {source}. Set N_GPU_LAYERS=0 to run fully on CPU or install a CUDA-capable GPU."
+            ).format(layers=config.N_GPU_LAYERS, source=config.HARDWARE["gpu_detection_source"])
+            logger.error(msg)
+            raise RuntimeError(msg)
         with _llama_lock:
             if _llama_instance is None:
                 _llama_instance = Llama(
@@ -116,6 +139,7 @@ def healthz():
         "ok": True,
         "model_path": config.MODEL_PATH,
         "has_llama": Llama is not None,
+        "hardware": config.HARDWARE,
     }
     return JSONResponse(status)
 
