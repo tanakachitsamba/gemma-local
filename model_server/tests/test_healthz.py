@@ -10,4 +10,8 @@ def test_healthz_ok():
     body = resp.json()
     assert body.get("ok") is True
     assert "model_path" in body
+    assert "hardware" in body
+    hardware = body["hardware"]
+    assert "cpu_count" in hardware
+    assert "gpu_available" in hardware
 
